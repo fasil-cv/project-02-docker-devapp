@@ -7,6 +7,8 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 COPY index.php /var/www/html/index.php
 
 RUN echo "health-ok" > /var/www/html/healthz
