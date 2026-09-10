@@ -1,8 +1,7 @@
-FROM php:8.2-fpm-alpine
+FROM ubuntu:20.04
 
-# Install build dependencies, Nginx, Supervisor, and BOTH extensions
-RUN apk add --no-cache nginx supervisor mysql-client \
-    && docker-php-ext-install mysqli pdo pdo_mysql \
+# Install Nginx, Supervisor, MySQL client, PHP-FPM, and PHP MySQL extensions
+RUN apt-get update && apt-get install -y nginx supervisor mysql-client php-fpm php-mysql \
     && mkdir -p /run/nginx
 
 COPY nginx.conf /etc/nginx/http.d/default.conf
