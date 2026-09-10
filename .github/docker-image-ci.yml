@@ -1,0 +1,75 @@
+# This is a sample workflow for building and testing a Docker image. can be used as a template for your own workflow.
+name: Docker CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  APP_NAME: devapp
+
+jobs:
+  # Build the image
+  Build-image:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: build
+        run: docker build -t ${{ env.APP_NAME }}:local .
+      - name: save image
+        run: docker save -o ${{ env.APP_NAME }}.tar ${{ env.APP_NAME }}:local
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: ${{ env.APP_NAME }}.tar
+  
+  # Test jobs
+  Test-image:
+    needs: Build-image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Load docker image
+        run: docker load -i ${{ env.APP_NAME }}.tar
+
+      - name: Run docker image
+        run: |
+          docker run -d --name=${{ env.APP_NAME }} -p 8080:80 ${{ env.APP_NAME }}:local
+          sleep 3
+      
+      - name: Health check
+        run: |
+          curl -f http://localhost:8080/healthz
+  
+  # Security scan image    
+  Scan-image:
+    needs: Build-image
+    runs-on: ubuntu-latest
+    steps:
+    
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Load docker image
+        run: docker load -i ${{ env.APP_NAME }}.tar
+
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.APP_NAME }}:local'
+          format: 'table'
+          exit-code: '0'   #make 1 exiting code to fail the pipeline, if one of the are reported.
+          #ignore-unfixed: true
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+
+  Test-image-3:
+    needs: Test-image
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "test-3"

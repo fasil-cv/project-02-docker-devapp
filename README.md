@@ -1,4 +1,4 @@
-# build image
+# Manual image build
 
 ### image name
 Note: use the image name `devapp` for this DevOps project
