@@ -7,14 +7,12 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-COPY index.php /var/www/html/index.php
-RUN rm -rf /var/www/html/index.html
+WORKDIR /var/www/html
+COPY index.php .
+RUN rm -rf index.html
 
 RUN echo "health-ok" > /var/www/html/healthz
 
-WORKDIR /var/www/html
 
 EXPOSE 80
 CMD ["apache2ctl", "-D", "FOREGROUND"]
