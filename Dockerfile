@@ -11,10 +11,7 @@ WORKDIR /var/www/html
 
 COPY index.php /var/www/html/index.php
 
-
-EXPOSE 80
-
-RUN echo "Test web application" > /var/www/html/index.html
 RUN echo "health-ok" > /var/www/html/healthz
+EXPOSE 80
 
 CMD ["apache2ctl", "-D", "FOREGROUND"]
