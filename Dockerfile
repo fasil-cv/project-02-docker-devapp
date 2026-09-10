@@ -7,11 +7,11 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
-
 COPY index.php /var/www/html/index.php
 
 RUN echo "health-ok" > /var/www/html/healthz
-EXPOSE 80
 
+WORKDIR /var/www/html
+
+EXPOSE 80
 CMD ["apache2ctl", "-D", "FOREGROUND"]
