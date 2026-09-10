@@ -10,6 +10,7 @@ RUN apt update && \
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 COPY index.php /var/www/html/index.php
+RUN rm -rf /var/www/html/index.html
 
 RUN echo "health-ok" > /var/www/html/healthz
 
