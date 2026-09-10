@@ -7,6 +7,8 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 WORKDIR /var/www/html
 COPY index.php .
 RUN rm -rf index.html
