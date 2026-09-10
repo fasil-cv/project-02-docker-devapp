@@ -67,9 +67,3 @@ jobs:
           exit-code: '0'   #make 1 exiting code to fail the pipeline, if one of the are reported.
           #ignore-unfixed: true
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
-
-  Test-image-3:
-    needs: Test-image
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "test-3"

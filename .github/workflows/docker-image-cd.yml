@@ -1,0 +1,99 @@
+name: Docker CD
+
+on:
+  push:
+    tags: [ 'v*.*.*' ]
+
+env:
+  APP_NAME: devapp
+  VERSION: ${{ github.ref_name }}
+
+jobs:
+
+  # Build the image
+  Build-image:
+    runs-on: ubuntu-latest  
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: build and tag
+        run: |
+          docker build -t fasilcv/${{ env.APP_NAME }}:local .
+
+      - name: save image
+        run: docker save -o ${{ env.APP_NAME }}.tar fasilcv/${{ env.APP_NAME }}:local
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: ${{ env.APP_NAME }}.tar
+  
+  # Test the image
+  Test-image:
+    needs: Build-image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Load docker image
+        run: docker load -i ${{ env.APP_NAME }}.tar
+
+      - name: Run docker image
+        run: |
+          docker run -d --name=${{ env.APP_NAME }} -p 8080:80 fasilcv/${{ env.APP_NAME }}:local
+          sleep 3
+      
+      - name: Health check
+        run: |
+          curl -f http://localhost:8080/healthz
+
+  # Security scan image    
+  Scan-image:
+    needs: Test-image
+    runs-on: ubuntu-latest
+    steps:
+    
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+      - name: Load docker image
+        run: docker load -i ${{ env.APP_NAME }}.tar
+
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: fasilcv/${{ env.APP_NAME }}:local
+          format: 'table'
+          exit-code: '0'   #make 1 exiting code to fail the pipeline, if one of the are reported.
+          #ignore-unfixed: true
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          
+  # Push image
+  Push-image:
+    needs: Scan-image
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+
+      - name: Load docker image
+        run: docker load -i ${{ env.APP_NAME }}.tar
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Push image
+        run: |
+          docker tag "fasilcv/${{ env.APP_NAME }}:local" "${DOCKER_USERNAME}/${{ env.APP_NAME }}:${VERSION}"
+          docker tag "${DOCKER_USERNAME}/${{ env.APP_NAME }}:${VERSION}" "${DOCKER_USERNAME}/${{ env.APP_NAME }}:latest"
+          docker push "${DOCKER_USERNAME}/${{ env.APP_NAME }}:${VERSION}"
+          docker push "${DOCKER_USERNAME}/${{ env.APP_NAME }}:latest"
