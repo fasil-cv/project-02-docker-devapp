@@ -23,4 +23,4 @@ RUN echo "health-ok" > /var/www/html/healthz
 # USER www-data
 
 EXPOSE 8080
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+CMD ["/usr/sbin/apache2", "-D", "FOREGROUND"]
