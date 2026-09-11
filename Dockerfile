@@ -16,7 +16,7 @@ RUN rm -rf index.html
 
 RUN echo "health-ok" > /var/www/html/healthz
 
-USER www-data
+# USER www-data
 
 EXPOSE 80
 CMD ["apache2ctl", "-D", "FOREGROUND"]
