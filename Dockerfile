@@ -1,29 +1,23 @@
-FROM ubuntu:24.04
-LABEL description="fcv devops application on Ubuntu 24.04"
+FROM php:8.3-apache
 
-# Install Apache, MySQL client, and PHP MySQL support
+LABEL description="fcv devops PHP application"
+
+# Install PHP MySQL extension
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
 RUN apt-get update && \
-    apt-get install -y apache2 mysql-client libapache2-mod-php php-mysql netcat-openbsd && \
+    apt-get install -y netcat-openbsd && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-<<<<<<< HEAD
-#Configuration.
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-RUN sed -i 's/^Listen 80$/Listen 8080/' /etc/apache2/ports.conf
-RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
-    /etc/apache2/sites-available/000-default.conf
+# Copy application
+COPY index.php /var/www/html/index.php
 
-#Code setup
-=======
->>>>>>> parent of 52ffe58 (add ServerName localhost)
-WORKDIR /var/www/html
-COPY index.php .
-RUN rm -rf index.html
-
+# Health check file
 RUN echo "health-ok" > /var/www/html/healthz
 
-# USER www-data
+USER www-data
 
-EXPOSE 8080
-CMD ["apachectl", "-D", "FOREGROUND"]
+WORKDIR /var/www/html
+EXPOSE 80
+CMD ["apache2-foreground"]
