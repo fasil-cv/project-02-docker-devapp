@@ -42,7 +42,7 @@ jobs:
 
       - name: Run docker image
         run: |
-          docker run -d --name=${{ env.APP_NAME }} -p 8080:80 ${{ env.PROJECT_NAME }}/${{ env.APP_NAME }}:local
+          docker run -d --name=${{ env.APP_NAME }} -p 8080:8080 ${{ env.PROJECT_NAME }}/${{ env.APP_NAME }}:local
           sleep 3
       
       - name: Health check
