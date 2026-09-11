@@ -7,7 +7,6 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-USER www-data
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
@@ -17,6 +16,7 @@ RUN rm -rf index.html
 
 RUN echo "health-ok" > /var/www/html/healthz
 
+USER www-data
 
 EXPOSE 80
 CMD ["apache2ctl", "-D", "FOREGROUND"]
